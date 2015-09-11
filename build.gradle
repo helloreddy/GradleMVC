@@ -1,0 +1,72 @@
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp' // 이클립스에서 구동하고 배포하기위해 플러그인 설치합니다.
+apply plugin: 'war'
+ 
+sourceCompatibility = 1.8   // 자바 버전입니다.
+targetCompatibility = 1.8
+ 
+version = '1.0'
+ 
+// 귀찮은 버전관리를 편하게 하기 위해서
+def version = [
+	spring: '4.1.6.RELEASE',
+	servletAPI: '3.1.0',
+	commonsCollections: '3.2.1',
+	junit: '4.12',
+	slf4j: '1.7.12'
+]
+ 
+eclipse {
+    // 빌드하고나면 프로젝트정보도 같이 지워지는데, Gradle프로젝트임을 인식시켜줍니다.
+    project.natures "org.springsource.ide.eclipse.gradle.core.nature"
+    wtp {
+        facet {
+            facet name: 'jst.web', version: '3.1'
+            facet name: 'jst.java', version: '1.8'
+        }
+    }
+}
+ 
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Beever_Test',
+                   'Implementation-Version': version
+    }
+}
+ 
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+ 
+dependencies {
+    // ${version.~}변수는 위에서 정의한 버전으로 사용됩니다.
+    providedCompile "javax.servlet:javax.servlet-api:${version.servletAPI}"
+     
+    compile "org.springframework:spring-webmvc:${version.spring}"
+     
+    compile "org.slf4j:slf4j-api:${version.slf4j}"
+    compile group: 'commons-collections', name: 'commons-collections', version: "${version.commonsCollections}"
+    compile group: 'commons-fileupload', name: 'commons-fileupload', version: "1.3"
+    
+    testCompile group: 'junit', name: 'junit', version: "${version.junit}"
+}
+ 
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8' // 인코딩 UTF-8로 통일합니다.
+ 
+test {
+    systemProperties 'property': 'value'
+}
+ 
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'repos'
+       }
+    }
+}
+  
